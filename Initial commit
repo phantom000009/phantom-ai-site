@@ -1,0 +1,83 @@
+import openai
+import requests
+from bs4 import BeautifulSoup
+import pyttsx3  # Text-to-speech (optional)
+import speech_recognition as sr  # Voice input (optional)
+
+# ===== CONFIG =====
+OPENAI_API_KEY = "YOUR_OPENAI_API_KEY"  # Get from https://platform.openai.com/
+AI_NAME = "Phantom AI"
+VOICE_ENABLED = True
+
+# ===== SETUP =====
+openai.api_key = OPENAI_API_KEY
+engine = pyttsx3.init() if VOICE_ENABLED else None
+
+# ===== CORE FUNCTIONS =====
+def phantom_speak(text):
+    """Make Phantom AI speak (if voice enabled)"""
+    print(f"\n⚡ {AI_NAME}: {text}")
+    if VOICE_ENABLED:
+        engine.say(text)
+        engine.runAndWait()
+
+def phantom_listen():
+    """Listen for user voice input (optional)"""
+    r = sr.Recognizer()
+    with sr.Microphone() as source:
+        print("\n🎤 Listening...")
+        audio = r.listen(source)
+        try:
+            return r.recognize_google(audio)
+        except:
+            return ""
+
+def web_search(query, num_results=3):
+    """Scrape Google search results (educational use only)"""
+    url = f"https://www.google.com/search?q={query}"
+    headers = {'User-Agent': 'Mozilla/5.0'}
+    try:
+        response = requests.get(url, headers=headers)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        return [result.text for result in soup.find_all('h3')[:num_results]]
+    except:
+        return []
+
+def phantom_think(prompt):
+    """Generate AI response using OpenAI"""
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system", "content": f"You are {AI_NAME}, a mysterious and all-knowing AI. Answer concisely."},
+            {"role": "user", "content": prompt}
+        ]
+    )
+    return response.choices[0].message['content']
+
+# ===== MAIN LOOP =====
+if __name__ == "__main__":
+    phantom_speak(f"I am {AI_NAME}. How may I serve you?")
+    
+    while True:
+        # Get user input (voice or text)
+        if VOICE_ENABLED:
+            user_input = phantom_listen()
+            print(f"👤 You: {user_input}")
+        else:
+            user_input = input("\n👤 You: ")
+        
+        # Exit condition
+        if user_input.lower() in ["exit", "quit"]:
+            phantom_speak("Fading into the shadows...")
+            break
+        
+        # Process input
+        if "search for" in user_input.lower():
+            query = user_input.replace("search for", "").strip()
+            results = web_search(query)
+            phantom_speak(f"🔍 Search results for '{query}':")
+            for idx, result in enumerate(results, 1):
+                phantom_speak(f"{idx}. {result}")
+        else:
+            response = phantom_think(user_input)
+            phantom_speak(response)
