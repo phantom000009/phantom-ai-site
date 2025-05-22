@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Phantom AI</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background-color: #0b0f19;
+      color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    header {
+      padding: 2rem 1rem;
+      text-align: center;
+    }
+    header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+    }
+    header p {
+      font-size: 1.2rem;
+      color: #9ca3af;
+    }
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem;
+    }
+    .search-container {
+      width: 100%;
+      max-width: 700px;
+      display: flex;
+      background-color: #1f2937;
+      border-radius: 9999px;
+      overflow: hidden;
+      box-shadow: 0 0 0 1px #374151;
+    }
+    .search-container input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      padding: 1rem 1.5rem;
+      color: #fff;
+      font-size: 1rem;
+    }
+    .search-container button {
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      padding: 1rem 1.5rem;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background-color 0.3s;
+    }
+    .search-container button:hover {
+      background-color: #1d4ed8;
+    }
+    footer {
+      text-align: center;
+      padding: 2rem 1rem;
+      color: #6b7280;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>🧠 Phantom AI</h1>
+    <p>Your intelligent search assistant, powered by modern AI</p>
+  </header>
+
+  <main>
+    <form class="search-container" onsubmit="handleSearch(event)">
+      <input type="text" id="searchInput" placeholder="Ask anything..." required />
+      <button type="submit">Ask</button>
+    </form>
+
+    <div id="response" style="max-width:700px; margin-top: 2rem;"></div>
+  </main>
+
+  <footer>
+    &copy; 2025 Phantom AI. Built for smart people by smart code.
+  </footer>
+
+  <script>
+    async function handleSearch(e) {
+      e.preventDefault();
+      const query = document.getElementById('searchInput').value;
+      const responseDiv = document.getElementById('response');
+
+      responseDiv.innerHTML = '<p style="color:#9ca3af;">Thinking...</p>';
+
+      // Replace with your backend endpoint
+      try {
+        const res = await fetch("http://localhost:8000/search", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query })
+        });
+
+        const data = await res.json();
+       if (data.results && data.results.length > 0) {
+  responseDiv.innerHTML = data.results.map(item => `
+    <div style="margin-bottom:1.5rem;">
+      <h3 style="margin:0 0 0.5rem;">
+        <a href="${item.url || '#'}" style="text-decoration:none;color:inherit;">
+          ${item.title}
+        </a>
+      </h3>
+      <p>${item.content}</p>
+    </div>
+        `).join('')
+        } else {
+          responseDiv.innerHTML = "<p style='color:gray;'>No results found.</p>";
+        }
+      } catch (err) {
+        responseDiv.innerHTML = "<p style='color:red;'>Error fetching results.</p>";
+      }
+    }
+  </script>
+
+</body>
+</html>
